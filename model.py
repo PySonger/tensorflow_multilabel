@@ -2,7 +2,7 @@
 @Author: Ding Song
 @Date: 2019-10-31 16:32:29
 @LastEditors: Ding Song
-@LastEditTime: 2019-10-31 19:33:57
+@LastEditTime: 2019-10-31 20:04:55
 @Description: A LeNet completion with TensorFlow.
 '''
 import tensorflow as tf 
@@ -47,4 +47,12 @@ class MultiLabelLenet(object):
             top = tf.bias_add(top,bias)
         return top
 
-    def build()
+    def build(self,img):
+        self.conv1 = self.conv2d(img,'conv1',self.is_training,[5,5,3,20],[1,1,1,1],'VALID')
+        self.pool1 = self.max_pool(self.conv1,'pool1',[2,2,20,20],[2,2,2,2],'VALID')
+        self.conv2 = self.conv2d(self.pool1,'conv2',self.is_training,[5,5,20,50],[1,1,1,1],'VALID')
+        self.pool2 = self.max_pool(self.conv2,'pool2',[2,2,50,50],[2,2,2,2],'VALID')
+        self.fc1 = self.fully_connected(self.pool2,'fc1',self.is_training,50,500)
+        self.relu1 = tf.nn.relu(self.fc1,'relu1')
+        self.fc2 = self.fully_connected(self.relu1,'fc2',self.is_training,500,7)
+        self.prob = tf.nn.sigmoid(self.fc2,'prob')
