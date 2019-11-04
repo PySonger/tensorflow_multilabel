@@ -2,7 +2,7 @@
 @Author: Ding Song
 @Date: 2019-10-31 16:32:29
 @LastEditors: Ding Song
-@LastEditTime: 2019-10-31 20:04:55
+@LastEditTime: 2019-11-04 23:35:23
 @Description: A LeNet completion with TensorFlow.
 '''
 import tensorflow as tf 
@@ -56,3 +56,4 @@ class MultiLabelLenet(object):
         self.relu1 = tf.nn.relu(self.fc1,'relu1')
         self.fc2 = self.fully_connected(self.relu1,'fc2',self.is_training,500,7)
         self.prob = tf.nn.sigmoid(self.fc2,'prob')
+        return self.prob
