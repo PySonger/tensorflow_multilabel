@@ -2,7 +2,7 @@
 @Author: Ding Song
 @Date: 2019-10-31 00:50:16
 @LastEditors: Ding Song
-@LastEditTime: 2019-11-04 17:32:53
+@LastEditTime: 2019-11-06 15:57:54
 @Description: A dataset compliment with TensorFlow.
 '''
 import os
@@ -13,26 +13,6 @@ import numpy as np
 import random as rd
 import matplotlib.pyplot as plt
 
-class MakeDataFile(object):
-
-    def __init__(self,img_dir,save_dir):
-        self.img_dir = img_dir
-        self.save_dir = save_dir
-
-    def get_file_path(self):
-        file_path_list = []
-        for root,dirs,files in os.walk(self.img_dir):
-            for filename in files:
-                if filename.endswith('.jpg'):
-                    file_path_list.append(os.path.join(root,filename))
-        return file_path_list
-
-    def make_file(self):
-        path_list = self.get_file_path()
-        lines = [i+'#'+'0 1 0 1\n' for i in path_list]
-        with open(os.path.join(self.save_dir,'data_file.txt'),'w') as f:
-            for line in lines:
-                f.write(line)
 
 class Dataset(object):
 
@@ -42,10 +22,15 @@ class Dataset(object):
         self.crop_size = crop_size
         self.batch_size = batch_size
         self.epoch_num = epoch_num
+        path_list,label_list = self.analysis_data_file()
+        self.path_list = path_list
+        self.label_list = label_list
+        self.num_batch = int(np.ceil(float(len(path_list)) / self.batch_size))
 
     def analysis_data_file(self):
         with open(self.data_file,'r') as f:
             data_lines = f.readlines()
+        rd.shuffle(data_lines)
         path_list,label_list = [],[]
         for line in data_lines:
             path,labels = line.strip().split('#')
@@ -55,9 +40,8 @@ class Dataset(object):
         return path_list,label_list
 
     def make_data(self):
-        path_list,label_list = self.analysis_data_file()
-        file_paths = tf.constant(path_list)
-        labels = tf.constant(label_list)
+        file_paths = tf.constant(self.path_list)
+        labels = tf.constant(self.label_list)
         dataset = tf.data.Dataset.from_tensor_slices((file_paths,labels))
         dataset = dataset.map(self.parser_function)
         dataset = dataset.shuffle(buffer_size=1000).batch(self.batch_size).repeat(self.epoch_num)
@@ -85,8 +69,8 @@ def main():
     #make_data_file = MakeDataFile(img_dir,save_dir)
     #make_data_file.make_file()
     #data_file = os.path.join(save_dir,'data_file.txt')
-    data_file = '/media/song/Bigger_Disk/tianjin_data/traffic-light-tianjin-rcb/new_data_file.txt'
-    data = Dataset(data_file,[50,50],[48,48],1,5)
+    data_file = '/media/song/Bigger_Disk/lingang-data/processed_data_by_label/balanced_cleaned_data_file.txt'
+    data = Dataset(data_file,[50,25],[48,22],2,5)
     iterator = data.make_data()
     one_element =  iterator.get_next()
     with tf.Session() as sess:
@@ -95,7 +79,9 @@ def main():
             while i < 10:
                 print(i)
                 img,label = sess.run(one_element)
-                print(img.shape)
+                img = img.astype(np.uint8)
+                img = img[0]
+                cv2.imwrite('{}.jpg'.format(i),img)
                 print(label)
                 i += 1
         except:

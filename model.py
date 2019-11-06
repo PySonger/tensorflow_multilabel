@@ -2,10 +2,11 @@
 @Author: Ding Song
 @Date: 2019-10-31 16:32:29
 @LastEditors: Ding Song
-@LastEditTime: 2019-11-04 23:35:23
+@LastEditTime: 2019-11-06 15:43:20
 @Description: A LeNet completion with TensorFlow.
 '''
 import tensorflow as tf 
+from tensorflow.contrib.layers import xavier_initializer
 import numpy as np
 
 class MultiLabelLenet(object):
@@ -19,17 +20,17 @@ class MultiLabelLenet(object):
             filt = self.get_conv_filter(kernel_size,is_training)
             bias = self.get_conv_bias(kernel_size,is_training)
             top = tf.nn.conv2d(bottom,filt,strides=stride,padding=padding)
-            top = tf.nn.bias_add(top,bias)
+            top = tf.add(top,bias)
             top = tf.nn.relu(top)
         return top
 
     def get_conv_filter(self,kernel_size,is_training):
         return tf.get_variable(name='weight',shape=kernel_size,trainable=is_training,
-                               initializer=tf.random_normal_initializer(stddev=0.1))
+                               dtype=tf.float32,initializer=xavier_initializer())
 
     def get_conv_bias(self,kernel_size,is_training):
         return tf.get_variable(name='bias',shape=kernel_size[-1],trainable=is_training,
-                               initializer=tf.constant_initializer(0.00))
+                               dtype=tf.float32,initializer=tf.constant_initializer(0))
 
     def max_pool(self,bottom,name,kernel_size,stride,padding):
         with tf.variable_scope(name):
@@ -38,21 +39,24 @@ class MultiLabelLenet(object):
 
     def fully_connected(self,bottom,name,is_training,input_size,output_size):
         with tf.variable_scope(name):
-            weight = tf.get_variable('weight',shape=[input_size,output_size],
-                                     initializer=tf.truncated_normal_initializer(stddev=0.001))
-            bias = tf.get_variable('bias',shape=output_size,
+            weight = tf.get_variable('weight',shape=[input_size,output_size],trainable=is_training,
+                                     dtype=tf.float32,initializer=xavier_initializer())
+            bias = tf.get_variable('bias',shape=output_size,trainable=is_training,
                                    initializer=tf.constant_initializer(0))
-            bottom = tf.reshape(bottom,[-1,input_size])
+            #bottom = tf.reshape(bottom,[-1,input_size])
+            #bottom = tf.transpose(bottom,perm=[1,0])
             top = tf.matmul(bottom,weight)
-            top = tf.bias_add(top,bias)
+            top = tf.add(top,bias)
         return top
 
     def build(self,img):
-        self.conv1 = self.conv2d(img,'conv1',self.is_training,[5,5,3,20],[1,1,1,1],'VALID')
-        self.pool1 = self.max_pool(self.conv1,'pool1',[2,2,20,20],[2,2,2,2],'VALID')
-        self.conv2 = self.conv2d(self.pool1,'conv2',self.is_training,[5,5,20,50],[1,1,1,1],'VALID')
-        self.pool2 = self.max_pool(self.conv2,'pool2',[2,2,50,50],[2,2,2,2],'VALID')
-        self.fc1 = self.fully_connected(self.pool2,'fc1',self.is_training,50,500)
+        self.conv1 = self.conv2d(img,'conv1',self.is_training,[5,5,3,20],[1,1,1,1],'SAME')
+        self.pool1 = self.max_pool(self.conv1,'pool1',[1,2,2,1],[1,2,2,1],'SAME')
+        self.conv2 = self.conv2d(self.pool1,'conv2',self.is_training,[5,5,20,50],[1,1,1,1],'SAME')
+        self.pool2 = self.max_pool(self.conv2,'pool2',[1,2,2,1],[1,2,2,1],'SAME')
+        pool2_shape = self.pool2.shape
+        self.pool2_flatten = tf.reshape(self.pool2,[-1,int(pool2_shape[1])*int(pool2_shape[2])*int(pool2_shape[3])])
+        self.fc1 = self.fully_connected(self.pool2_flatten,'fc1',self.is_training,int(pool2_shape[1])*int(pool2_shape[2])*int(pool2_shape[3]),500)
         self.relu1 = tf.nn.relu(self.fc1,'relu1')
         self.fc2 = self.fully_connected(self.relu1,'fc2',self.is_training,500,7)
         self.prob = tf.nn.sigmoid(self.fc2,'prob')
