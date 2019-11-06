@@ -2,7 +2,7 @@
 @Author: Ding Song
 @Date: 2019-10-31 20:03:45
 @LastEditors: Ding Song
-@LastEditTime: 2019-11-06 19:12:33
+@LastEditTime: 2019-11-06 19:39:54
 @Description: train, evalution and test part.
 '''
 import os
@@ -41,7 +41,7 @@ class Solver(object):
         self.loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=self.prob,labels=self.label))
         self.train_op = self.optimizer.minimize(self.loss)
 
-        self.saver = tf.train.Saver([self.model])
+        self.saver = tf.train.Saver(tf.trainable_variables())
 
     def train(self):
         self.sess.run(tf.global_variables_initializer())

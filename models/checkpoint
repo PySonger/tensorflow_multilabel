@@ -1,0 +1,5 @@
+model_checkpoint_path: "MultiLabelLenet-20"
+all_model_checkpoint_paths: "MultiLabelLenet-5"
+all_model_checkpoint_paths: "MultiLabelLenet-10"
+all_model_checkpoint_paths: "MultiLabelLenet-15"
+all_model_checkpoint_paths: "MultiLabelLenet-20"
