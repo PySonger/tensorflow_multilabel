@@ -2,7 +2,7 @@
 @Author: Ding Song
 @Date: 2019-10-31 00:50:16
 @LastEditors: Ding Song
-@LastEditTime: 2019-11-06 15:57:54
+@LastEditTime: 2019-11-06 16:43:53
 @Description: A dataset compliment with TensorFlow.
 '''
 import os
@@ -44,7 +44,7 @@ class Dataset(object):
         labels = tf.constant(self.label_list)
         dataset = tf.data.Dataset.from_tensor_slices((file_paths,labels))
         dataset = dataset.map(self.parser_function)
-        dataset = dataset.shuffle(buffer_size=1000).batch(self.batch_size).repeat(self.epoch_num)
+        dataset = dataset.shuffle(buffer_size=10).batch(self.batch_size).repeat(self.epoch_num)
         iterator = dataset.make_one_shot_iterator()
         return iterator
 

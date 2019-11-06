@@ -2,7 +2,7 @@
 @Author: Ding Song
 @Date: 2019-10-31 16:32:29
 @LastEditors: Ding Song
-@LastEditTime: 2019-11-06 15:43:20
+@LastEditTime: 2019-11-06 18:44:11
 @Description: A LeNet completion with TensorFlow.
 '''
 import tensorflow as tf 
@@ -50,14 +50,13 @@ class MultiLabelLenet(object):
         return top
 
     def build(self,img):
-        self.conv1 = self.conv2d(img,'conv1',self.is_training,[5,5,3,20],[1,1,1,1],'SAME')
-        self.pool1 = self.max_pool(self.conv1,'pool1',[1,2,2,1],[1,2,2,1],'SAME')
-        self.conv2 = self.conv2d(self.pool1,'conv2',self.is_training,[5,5,20,50],[1,1,1,1],'SAME')
-        self.pool2 = self.max_pool(self.conv2,'pool2',[1,2,2,1],[1,2,2,1],'SAME')
+        self.conv1 = self.conv2d(img,'conv1',self.is_training,[5,5,3,20],[1,1,1,1],'VALID')
+        self.pool1 = self.max_pool(self.conv1,'pool1',[1,2,2,1],[1,2,2,1],'VALID')
+        self.conv2 = self.conv2d(self.pool1,'conv2',self.is_training,[5,5,20,50],[1,1,1,1],'VALID')
+        self.pool2 = self.max_pool(self.conv2,'pool2',[1,2,2,1],[1,2,2,1],'VALID')
         pool2_shape = self.pool2.shape
         self.pool2_flatten = tf.reshape(self.pool2,[-1,int(pool2_shape[1])*int(pool2_shape[2])*int(pool2_shape[3])])
         self.fc1 = self.fully_connected(self.pool2_flatten,'fc1',self.is_training,int(pool2_shape[1])*int(pool2_shape[2])*int(pool2_shape[3]),500)
         self.relu1 = tf.nn.relu(self.fc1,'relu1')
         self.fc2 = self.fully_connected(self.relu1,'fc2',self.is_training,500,7)
         self.prob = tf.nn.sigmoid(self.fc2,'prob')
-        return self.prob
