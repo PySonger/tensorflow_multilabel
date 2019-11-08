@@ -2,8 +2,8 @@
 @Author: Ding Song
 @Date: 2019-10-31 20:03:45
 @LastEditors: Ding Song
-@LastEditTime: 2019-11-06 19:39:54
-@Description: train, evalution and test part.
+@LastEditTime: 2019-11-08 10:23:28
+@Description: train part.
 '''
 import os
 import tensorflow as tf 
@@ -33,12 +33,12 @@ class Solver(object):
         self.input_img = tf.placeholder(dtype=tf.float32,shape=[None,crop_size[0],crop_size[1],3],name='input')
         self.model.build(self.input_img)
 
-        self.prob = self.model.fc2
+        self.fc2 = self.model.fc2
         #pred equals to sigmoid(fc2)
-        self.pred = self.model.prob
+        self.prob = self.model.pred
 
         self.label = tf.placeholder(tf.float32,shape=[None,7],name='label')
-        self.loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=self.prob,labels=self.label))
+        self.loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=self.fc2,labels=self.label))
         self.train_op = self.optimizer.minimize(self.loss)
 
         self.saver = tf.train.Saver(tf.trainable_variables())
@@ -49,10 +49,10 @@ class Solver(object):
         for epoch in range(self.epoch_num):
             for batch in range(self.train_data.num_batch):
                 img,label = self.sess.run(self.iterator)
-                pred,loss,_ = self.sess.run([self.pred,self.loss,self.train_op],feed_dict={self.input_img:img,self.label:label})
-                pred = np.where(pred > 0.5,1,0)
+                prob,loss,_ = self.sess.run([self.prob,self.loss,self.train_op],feed_dict={self.input_img:img,self.label:label})
+                prob = np.where(prob > 0.5,1,0)
                 if (1+batch) % 100 == 0:
-                    print('[{} | {}] {}  {}  {}  {}'.format(epoch+1,self.epoch_num,self.optimizer._learning_rate,loss,pred[0],label[0]))
+                    print('[{} | {}] {}  {}  {}  {}'.format(epoch+1,self.epoch_num,self.optimizer._learning_rate,loss,prob[0],label[0]))
             if (1+epoch) % self.step_size == 0:
                 self.optimizer._learning_rate *= self.decay_rate
                 print(self.optimizer._learning_rate)
@@ -69,12 +69,12 @@ class Solver(object):
 if __name__ == '__main__':
     save_dir = 'models'
     num_classes = 7
-    train_data_file = '/media/song/Bigger_Disk/lingang-data/processed_data_by_label/balanced_cleaned_data_file.txt'
+    train_data_file = '/media/song/Bigger_Disk/lingang-data/processed_data_by_label/balanced_train_data_file.txt'
     img_size = (50,25)
     crop_size = (48,22)
-    batch_size = 60
-    epoch_num = 20
-    learning_rate = 0.001
-    step_size = 5
+    batch_size = 100
+    epoch_num = 50
+    learning_rate = 0.2
+    step_size = 6
     solver = Solver(save_dir,num_classes,train_data_file,img_size,crop_size,batch_size,epoch_num,learning_rate,step_size)
     solver.train()
