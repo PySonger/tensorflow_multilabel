@@ -135,11 +135,6 @@ class Dataset(object):
         return crop_boxes[0] * 0.00390625,label
         
 def main():
-    #img_dir = '/media/song/机械盘1/my_python_file/dataset/天气识别/Train'
-    #save_dir = '/media/song/机械盘1/my_python_file/dataset/天气识别/'
-    #make_data_file = MakeDataFile(img_dir,save_dir)
-    #make_data_file.make_file()
-    #data_file = os.path.join(save_dir,'data_file.txt')
     data_file = '/media/song/Bigger_Disk/lingang-data/processed_data_by_label/balanced_cleaned_data_file.txt'
     data = Dataset(data_file,[50,25],[48,22],2,5)
     iterator = data.make_data()
@@ -150,9 +145,6 @@ def main():
             while i < 10:
                 print(i)
                 img,label = sess.run(one_element)
-                #img = img.astype(np.uint8)
-                #img = img[0]
-                #cv2.imwrite('{}.jpg'.format(i),img)
                 print(np.unique(img))
                 i += 1
         except:
